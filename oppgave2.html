@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<script src="https://kit.fontawesome.com/3fd70fbd6c.js" crossorigin="anonymous"></script>
+
+	<title>IT2 eksamen V21 oppgave 2</title>
+	<style>
+		body {
+			font-family: 'Open Sans', sans-serif;
+		}
+
+		#spill-ramme {
+			padding: 30px;
+			width: 700px;
+			height: 300px;
+			display: grid;
+			gap: 50px;
+			grid-template-columns: 500px 140px;
+			background-color: #ffd800;
+		}
+
+		#tall-ramme {
+			display: grid;
+			gap: 20px;
+			grid-template-columns: repeat(5, 85px);
+			grid-template-rows: repeat(3, 85px);
+		}
+
+		#tall-ramme div {
+			border-radius: 50%;
+			background-color: #ffdf00;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			font-size: 2.5em;
+		}
+
+		#tall-ramme .valg {
+			background-color: #c60c30;
+			color: white;
+			transition: 125ms;
+		}
+
+		.valg:hover {
+			transform: scale(1.05);
+		}
+
+		.valg:active {
+			transform: scale(.95);
+		}
+
+		#gevinster {
+			display: flex;
+			flex-direction: column;
+			gap: 10px;
+		}
+
+		#gevinster div{
+			border-radius: 20px;
+			width: fit-content;
+			background-color: #ffd800;
+			color: black;
+			font-size: 1.25em;
+			display: flex;
+			justify-content: center;
+			align-items: center;
+			padding: 10px;
+
+		}
+
+		#gevinster .aktiv{
+			background-color: #c60c30;
+			color: white;
+		}
+
+		#tall-ramme .tallfelter {
+			background-color: white;
+			color: black;
+		}
+
+		#tall-ramme .joker-animasjon{
+			background-color: #c60c30;
+			animation: joker 500ms infinite alternate;
+		}
+
+		@keyframes joker{
+			0% {transform: scale(0.95)}
+			100% {transform: scale(1.05)}
+		}
+	</style>
+</head>
+
+<body>
+	<h1>Joker spill</h1>
+	<div id="spill-ramme">
+		<div id="tall-ramme">
+
+		</div>
+		<div id="gevinster"></div>
+	</div>
+	<audio src=""></audio>
+	<h2></h2>
+	<script>
+
+		// DOM
+		let tallRammeDiv = document.querySelector("#tall-ramme");
+		let gevinsterDiv = document.querySelector("#gevinster");
+		let audio = document.querySelector("audio");
+
+		// Variabler
+		let gevinst = 0;
+		let gevinster = [412, 535, 722, 1010, 1464, 2196];
+
+		// Trekker et tall mellom 0 og 10 for joker
+		let jokerTall = Math.floor(Math.random() * 10);
+
+		// Legger inn gevinstene
+		for (let i=0; i<6; i++){
+			gevinsterDiv.innerHTML += `<div id="gevinst${5-i}"><span>${gevinster[5-i]} 000 kr</span></div>`
+		}
+
+		// Legger inn tallfelter
+		for (let i = 0; i < 15; i++) {
+			if (i < 5) {
+				tallRammeDiv.innerHTML += `<div id="opp${4 - i}"
+								data-tilfeldig-tall="${Math.floor(Math.random() * 10)}"
+								data-retning="opp"
+								data-aktiv="${4 - i}"
+								data-joker="${(4 - i) === jokerTall}"
+								></div>`
+			} else if (i < 10) {
+				let tilfeldig = Math.floor(Math.random() * 10);
+				tallRammeDiv.innerHTML += `<div class="tallfelter" id="tall${9 - i}" data-tilfeldig-tall="${tilfeldig}"><span>${tilfeldig}</span></div>`
+			} else {
+				tallRammeDiv.innerHTML += `<div id="ned${14 - i}"
+				                data-tilfeldig-tall="${Math.floor(Math.random() * 10)}"
+								data-retning="ned"
+								data-aktiv="${14 - i}"
+								data-joker="${(19 - i) === jokerTall}"
+								></div>`
+			}
+		}
+
+		// Prepper det første valget
+		preppeValg(0);
+		endreGevinst(0);
+
+		// Prepper et valg
+		function preppeValg(aktiv) {
+			let oppDiv = document.querySelector("#opp" + aktiv);
+			oppDiv.className = "valg fa fa-solid fa-angle-up";
+			oppDiv.onclick = velg;
+
+			let nedDiv = document.querySelector("#ned" + aktiv);
+			nedDiv.className = "valg fa fa-solid fa-angle-down";
+			nedDiv.onclick = velg;
+
+		}
+
+		// Endre gevinst
+		function endreGevinst(til){
+
+			if (til < 0){
+				til = 0;
+			}
+
+			// Endrer utsende til gevinsten
+			let gevinstDiv = document.querySelector("#gevinst" + gevinst);
+			gevinstDiv.className = "";
+
+			console.log(gevinstDiv)
+
+			// Oppdaterer gevinsten
+			gevinst = til;
+
+			// Endrer utsende til forrige gevinsten
+			gevinstDiv = document.querySelector("#gevinst" + gevinst);
+			gevinstDiv.className = "aktiv";
+
+		}
+
+		// Lytterfunksjon for å velge
+		function velg(event) {
+
+			// Henter ut informasjon fra valget
+			let valgDiv = event.target;
+			let aktiv = Number(valgDiv.dataset.aktiv);
+			let retning = valgDiv.dataset.retning;
+			let tilfeldigTall = Number(valgDiv.dataset.tilfeldigTall);
+			let joker = valgDiv.dataset.joker === "true";
+
+			// Sjekker for joker
+			if (joker) {
+				valgDiv.innerHTML = "<img style='width:80%' src='bilder/joker.png'>"
+				valgDiv.className = "joker-animasjon";
+				valgDiv.onclick = function(){};
+
+				let andreValg = document.querySelector(`#${retning === "opp" ? "ned" : "opp"}${aktiv}`);
+				andreValg.className = "";
+				andreValg.onclick = function(){}
+				audio.src = "lyd/joker.mp3";
+				audio.play();
+				endreGevinst(5);
+				avslutt();
+				return
+			}
+			// Viser tallet og fjerner pilklasser og mulighet for å klikke
+			valgDiv.innerHTML = `<span>${tilfeldigTall}</span>`
+			valgDiv.className = "";
+			valgDiv.onclick = function(){};
+
+			// Henter ut tilfeldig tall fra tallfeltet
+			let tilfeldigTallSlgn = Number(document.querySelector("#tall" + aktiv).dataset.tilfeldigTall);
+
+			// valgDiv som IKKE ble valgt
+			let andreValg;
+
+			// Sjekker retningen (opp eller ned)
+			if (retning === "opp") {
+
+				// Henter andreValg
+				andreValg = document.querySelector("#ned" + aktiv);
+
+				// Har jeg gjettet riktig?
+				if (tilfeldigTall >= tilfeldigTallSlgn) {
+					riktig();
+				} else {
+					feil();
+				}
+				// Ned
+			} else {
+
+				// Henter andreValg
+				andreValg = document.querySelector("#opp" + aktiv);
+
+				// Har jeg gjettet riktig?
+				if (tilfeldigTall <= tilfeldigTallSlgn) {
+					riktig();
+				} else {
+					feil();
+				}
+			}
+
+			// Sletter mulighet for valg for andre valget
+			andreValg.className = "";
+			andreValg.onclick = function(){}
+
+			// Prepper neste valget
+			if (aktiv != 4) {
+				preppeValg(aktiv + 1)
+			} else {
+				avslutt();
+			}
+
+		}
+
+		// Kjøres hvis man taper
+		function riktig() {
+			audio.src = "lyd/riktig.mp3";
+			audio.play();
+			endreGevinst(gevinst + 1)
+		}
+
+		function feil() {
+			audio.src = "lyd/feil.mp3";
+			audio.play();
+			endreGevinst(gevinst - 1 );
+		}
+
+		function avslutt() {
+			document.querySelector("h2").innerHTML = `Gratulerer du vant ${gevinster[gevinst]} 000 kr!`
+		}
+
+
+	</script>
+
+</body>
+
+</html>

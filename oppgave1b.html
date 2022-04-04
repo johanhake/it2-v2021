@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<link rel="stylesheet" href="brukerinput.css">
+	<title>IT2 eksamen V21 oppgave 1</title>
+	<style>
+		* {
+			font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+
+		}
+
+		#spill {
+			display: none;
+		}
+
+		#spill div img {
+			margin: 5px;
+			cursor: pointer;
+			transition: 0.125s;
+		}
+
+		#spill div img:hover {
+			transform: scale(1.05);
+		}
+
+		#spill div img:active {
+			transform: scale(.95);
+		}
+
+		#data-valg {
+			width: 200px;
+			height: 200px;
+			opacity: 0;
+			transition: 125ms;
+		}
+
+		#diagram {
+			width: 200px;
+			height: 200px;
+			display: grid;
+			grid-template-columns: 1fr 1fr;
+			justify-content: start;
+			align-items: end;
+		}
+
+		#diagram div {
+			margin-top: 10px;
+			display: flex;
+			flex-grow: 1;
+			flex-direction: column;
+			justify-content: end;
+			text-align: center;
+			height: 20px;
+			transition: 1s;
+		}
+
+		#spiller-poeng {
+			background-color: greenyellow;
+		}
+
+		#data-poeng {
+			background-color: coral;
+		}
+	</style>
+</head>
+
+<body>
+	<h1>Myntspill</h1>
+	<form onsubmit="antallSpill(event)">
+		<label for="antallSpillInp">Antall spill (positivt oddetall):</label>
+		<input id="antallSpillInp" type="number" min="1" max="101">
+		<button>Velg</button>
+		<h3></h3>
+	</form>
+
+	<div id="spill">
+		<h2>Antall spill igjen: <span></span></h3>
+			<h4>Velg Kron eller Mynt:</h4>
+			<div>
+				<img src="bilder/kron.png" onclick="velgMynt('kron')" alt="">
+				<img src="bilder/mynt.png" onclick="velgMynt('mynt')" alt="">
+			</div>
+			<h3></h3>
+			<div id="data-valg"></div>
+			<div id="diagram">
+				<div id="spiller-poeng"><span>0 poeng</span></div>
+				<div id="data-poeng"><span>0 poeng</span></div>
+			</div>
+	</div>
+	</div>
+
+	<script>
+
+		// DOM
+		let dataValgDiv = document.querySelector("#data-valg");
+		let infoH3 = document.querySelector("#spill h3");
+		let spillerPoengDiv = document.querySelector("#spiller-poeng");
+		let spillerPoengTxt = document.querySelector("#spiller-poeng span");
+		let dataPoengDiv = document.querySelector("#data-poeng");
+		let dataPoengTxt = document.querySelector("#data-poeng span");
+
+		// Variabler
+		let spillGjort = 0;
+		let spillTotalt = 0;
+		let vinst = 0;
+		let brukerValg = "";
+		let poengDel = 1;
+		let spillerPoengHøyde = 20;
+		let dataPoengHøyde = 20;
+
+		// Velger antall spill og start spill
+		function antallSpill(event) {
+			event.preventDefault();
+
+			let skjema = event.target;
+			spillTotalt = Number(skjema.antallSpillInp.value);
+			if (spillTotalt % 2 === 0) {
+				document.querySelector("form h2").innerHTML = "Velg et positivt oddetall!"
+				return;
+			}
+
+			skjema.style.display = "none";
+			document.querySelector("#spill").style.display = "grid";
+			oppdaterSpillGjort();
+
+			// Antal piksler som poengene skal oppdateres med
+			poengDel = 180 / spillTotalt;
+
+		}
+
+		// Lytterfunksjon for å velge kron eller mynt
+		function velgMynt(hva) {
+
+			// Minker antallet spill igjen
+			spillGjort += 1;
+
+			// Viser hva brukeren valgte
+			infoH3.innerHTML = `Du valgte: ${hva}`;
+			brukerValg = hva;
+
+			// Dataen velger etter 1s
+			setTimeout(dataValg, 1000);
+		}
+
+		function oppdaterSpillGjort() {
+			document.querySelector("#spill h2 span").innerHTML = (spillTotalt - spillGjort);
+		}
+
+		// Funksjon som velger dataens valg
+		function dataValg() {
+			// Vant spilleren eller dataen?
+			let tilfeldig = ["kron", "mynt"][Math.trunc(Math.random() * 2)];
+			infoH3.innerHTML += ` dataen fikk:  ${tilfeldig}`
+			dataValgDiv.style.opacity = 1;
+			if (tilfeldig == brukerValg) {
+				dataValgDiv.style.backgroundColor = "greenyellow";
+				infoH3.innerHTML += " => vant";
+				vinst += 1;
+				spillerPoengHøyde += poengDel;
+				spillerPoengDiv.style.height = spillerPoengHøyde + "px";
+				spillerPoengTxt.innerHTML = `${vinst} poeng`
+			} else {
+				dataValgDiv.style.backgroundColor = "coral"
+				infoH3.innerHTML += " => tapte";
+				dataPoengHøyde += poengDel;
+				dataPoengDiv.style.height = dataPoengHøyde + "px";
+				dataPoengTxt.innerHTML = `${spillGjort - vinst} poeng`
+			}
+
+			// Oppdater bilde
+			dataValgDiv.style.backgroundImage = `url(bilder/${tilfeldig}.png)`;
+
+			oppdaterSpillGjort();
+
+			// Hvis siste gjetning
+			if (spillGjort === spillTotalt) {
+
+				// Avregistrere lytterfunksjoner
+				for (let img of document.querySelectorAll("#spill div img")) {
+					img.onclick = function () { };
+				}
+
+				// Sjekker for vinst
+				if (vinst > spillTotalt / 2) {
+					infoH3.innerHTML = "Spillet er over du vant!"
+				}else{
+					infoH3.innerHTML = "Spillet er over du tapte :("
+				}
+			}
+		}
+
+	</script>
+
+</body>
+
+</html>
